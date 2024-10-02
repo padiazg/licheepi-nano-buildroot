@@ -16,6 +16,8 @@ COPY \
     external.desc \
     external.mk \
     ./
+RUN chmod +x board/licheepi_nano/post-image.sh
+RUN ln -sf $BUILDROOT_BASE/buildroot/output/host/bin/genimage /usr/bin/genimage
 
 # reset Buildroot config and trigger Linux kernel rebuild
 WORKDIR /root/buildroot

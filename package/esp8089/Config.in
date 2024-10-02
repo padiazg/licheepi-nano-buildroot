@@ -1,0 +1,6 @@
+config BR2_PACKAGE_ESP8089
+	bool "esp8089"
+	depends on BR2_LINUX_KERNEL
+	help
+		ESP8089 WiFi driver for Allwinner H3
+		https://github.com/Icenowy/esp8089
