@@ -110,3 +110,20 @@ The built U-Boot is [a fork based off v2021.01](https://github.com/unframework/u
 ## LCD Screen Support
 
 By default, the `suniv-f1c100s-licheepi-nano.dts` device tree expects a 800x480 TFT screen to be plugged into the 40-pin flex-PCB connector on the board. You can change this to be a 480x272 TFT screen - simply uncomment the `panel` block at line 14 in [suniv-f1c100s-licheepi-nano-custom.dts](board/licheepi_nano/suniv-f1c100s-licheepi-nano-custom.dts). This will override the `compatible` string for the driver and trigger the lower resolution (see also [original docs](http://nano.lichee.pro/build_sys/devicetree.html#lcd)).
+
+## ESP8089 Support
+We are using (Icenowy/esp8089)[https://github.com/Icenowy/esp8089/tree/cleanup]
+
+The NET, WIRELESS, CFG80211 and MAC80211 kernel modules are baked in kernel
+
+Loading
+```shell
+$ modprobe esp8089.ko
+```
+If you get a wlan interface, but scanning shows no networks try using:
+```shell
+$ modprobe esp8089.ko config=crystal_26M_en=1
+# or
+$ modprobe esp8089.ko config=crystal_26M_en=2
+```
+

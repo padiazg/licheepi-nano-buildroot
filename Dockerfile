@@ -4,6 +4,7 @@
 
 ARG BASE_IMAGE=unframework/licheepi-nano-buildroot
 ARG BASE_VERSION=latest
+ARG BR2_CONFIGFILE=licheepi_nano_defconfig
 
 FROM $BASE_IMAGE:$BASE_VERSION AS local
 
@@ -21,7 +22,7 @@ RUN ln -sf $BUILDROOT_BASE/buildroot/output/host/bin/genimage /usr/bin/genimage
 
 # reset Buildroot config and trigger Linux kernel rebuild
 WORKDIR /root/buildroot
-RUN BR2_EXTERNAL=/root/licheepi-nano make licheepi_nano_defconfig
+RUN BR2_EXTERNAL=/root/licheepi-nano make $BR2_CONFIGFILE
 RUN cd output/build/uboot-v2021.01-f1c100s-4/ && rm .stamp_built .stamp_*installed
 RUN cd output/build/host-uboot-tools-2021.07/ && rm .stamp_built .stamp_*installed
 RUN cd output/build/linux-custom/ && rm .stamp_dotconfig .stamp_configured .stamp_built .stamp_*installed
