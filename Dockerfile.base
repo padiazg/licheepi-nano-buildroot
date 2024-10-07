@@ -3,15 +3,16 @@ FROM ubuntu:22.04 AS base
 # Buildroot release version
 ARG BUILDROOT_RELEASE=2023.02
 ARG BUILDROOT_BASE=/root
+ARG BR2_CONFIGFILE=licheepi_nano_defconfig
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# cache apt-get update results
-RUN apt-get update
+# cache apt update results
+RUN apt update
 
 # install build prerequisites
 # @todo remove python3-distutils after upgrading U-Boot
-RUN apt-get install -qy \
+RUN apt install -qy \
     bc \
     bison \
     build-essential \
@@ -49,6 +50,7 @@ RUN wget -qO- http://buildroot.org/downloads/buildroot-${BUILDROOT_RELEASE}.tar.
 
 # build the cross-compilation toolchain as a separate cacheable image
 FROM base AS sdk
+ARG BUILDROOT_BASE
 
 # configure a skeleton setup for `make sdk` only at first
 # (we take special care to not include other unrelated config files)
@@ -66,6 +68,8 @@ RUN make sdk
 
 # start main build using the generated toolchain bundle
 FROM base AS main
+ARG BR2_CONFIGFILE
+ARG BUILDROOT_BASE
 
 # copy over the SDK tarball (keeping the name)
 COPY --from=sdk $BUILDROOT_BASE/buildroot/output/images/arm-buildroot-linux-gnueabi_sdk-buildroot.tar.gz $BUILDROOT_BASE/
@@ -85,7 +89,7 @@ RUN ln -sf $BUILDROOT_BASE/buildroot/output/host/bin/genimage /usr/bin/genimage
 
 # set up the defconfig
 WORKDIR $BUILDROOT_BASE/buildroot
-RUN BR2_EXTERNAL=$BUILDROOT_BASE/licheepi-nano make licheepi_nano_defconfig
+RUN BR2_EXTERNAL=$BUILDROOT_BASE/licheepi-nano make $BR2_CONFIGFILE
 
 # prep the toolchain from the tarball
 RUN make toolchain
@@ -99,4 +103,5 @@ RUN make uboot-source
 
 # expose built image files in standalone root folder
 FROM scratch AS dist
+ARG BUILDROOT_BASE
 COPY --from=main $BUILDROOT_BASE/buildroot/output/images/ .
