@@ -1,10 +1,11 @@
-FROM ubuntu:22.04 AS base
-
 # Buildroot release version
 ARG BUILDROOT_RELEASE=2023.02
 ARG BUILDROOT_BASE=/root
-ARG BR2_CONFIGFILE=licheepi_nano_defconfig
+ARG BR2_CONFIGFILE=licheepi_nano_spiflash_defconfig
 
+FROM ubuntu:22.04 AS base
+ARG BUILDROOT_BASE
+ARG BUILDROOT_RELEASE
 ENV DEBIAN_FRONTEND=noninteractive
 
 # cache apt update results
@@ -99,9 +100,10 @@ RUN make linux-source
 RUN make uboot-source
 
 # run the main build command
-# RUN make
+RUN make
 
 # expose built image files in standalone root folder
 FROM scratch AS dist
 ARG BUILDROOT_BASE
+
 COPY --from=main $BUILDROOT_BASE/buildroot/output/images/ .

@@ -32,7 +32,8 @@ define ESP8089_BUILD_CMDS
 endef
 
 define ESP8089_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 $(@D)/esp8089.ko $(TARGET_DIR)/lib/modules/$(LINUX_VERSION_PROBED)/extra/esp8089.ko
+	$(INSTALL) -D -m 0644 $(@D)/esp8089.ko $(TARGET_DIR)/lib/modules/$(LINUX_VERSION_PROBED)/kernel/net/wireless/esp8089.ko
+	$(shell cp  $(@D)/firmware/*.bin $(TARGET_DIR)/lib/firmware/)
 endef
 
 $(eval $(kernel-module))
