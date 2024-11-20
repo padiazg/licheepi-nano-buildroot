@@ -1,0 +1,26 @@
+From 128247288afa1738d79782158834727abc9d10e9 Mon Sep 17 00:00:00 2001
+From: Patricio Diaz <padiazg@gmail.com>
+Date: Tue, 1 Oct 2024 17:48:19 -0400
+Subject: [PATCH] uncommited
+
+---
+ esp_ctrl.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/esp_ctrl.c b/esp_ctrl.c
+index ef3cb1b..2d9d3bf 100644
+--- a/esp_ctrl.c
++++ b/esp_ctrl.c
+@@ -451,8 +451,10 @@ int sip_send_ampdu_action(struct esp_pub *epub, u8 action_num,
+ 	switch (action_num) {
+ 	case SIP_AMPDU_RX_START:
+ 		action->ssn = ssn;
++		 /* fall through */
+ 	case SIP_AMPDU_RX_STOP:
+ 		action->index = index;
++		 /* fall through */
+ 	case SIP_AMPDU_TX_OPERATIONAL:
+ 	case SIP_AMPDU_TX_STOP:
+ 		action->win_size = buf_size;
+-- 
+2.34.1

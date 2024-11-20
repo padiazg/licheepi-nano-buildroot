@@ -1,5 +1,7 @@
 # Lichee Pi Nano Bootable Linux Image (Buildroot)
 
+This is a fork from [unframework/licheepi-nano-buildroot](https://github.com/unframework/licheepi-nano-buildroot), mainly to include the esp8089 module into the build process.
+
 ![Lichee Pi Nano with LCD screen](licheepi-nano-lcd.jpg)
 
 [Lichee Pi Nano](https://wiki.sipeed.com/soft/Lichee/zh/Nano-Doc-Backup/get_started/first_eye.html) ([English article](https://www.cnx-software.com/2018/08/17/licheepi-nano-cheap-sd-card-sized-linux-board/), [old site](http://nano.lichee.pro/index.html)) is a very small single-board computer that is about the size of an SD card. It can run Linux. There is a good amount of official documentation on the [original manufacturer site](http://nano.lichee.pro/get_started/first_eye.html) (in Chinese, but easily readable thanks to Google Translate). However, the tooling used to build the full card/SPI-Flash images is mostly made up of custom shell scripts, and is not always easy to extend or maintain.
@@ -108,3 +110,20 @@ The built U-Boot is [a fork based off v2021.01](https://github.com/unframework/u
 ## LCD Screen Support
 
 By default, the `suniv-f1c100s-licheepi-nano.dts` device tree expects a 800x480 TFT screen to be plugged into the 40-pin flex-PCB connector on the board. You can change this to be a 480x272 TFT screen - simply uncomment the `panel` block at line 14 in [suniv-f1c100s-licheepi-nano-custom.dts](board/licheepi_nano/suniv-f1c100s-licheepi-nano-custom.dts). This will override the `compatible` string for the driver and trigger the lower resolution (see also [original docs](http://nano.lichee.pro/build_sys/devicetree.html#lcd)).
+
+## ESP8089 Support
+We are using (Icenowy/esp8089)[https://github.com/Icenowy/esp8089/tree/cleanup]
+
+The NET, WIRELESS, CFG80211 and MAC80211 kernel modules are baked in kernel
+
+Loading
+```shell
+$ modprobe esp8089.ko
+```
+If you get a wlan interface, but scanning shows no networks try using:
+```shell
+$ modprobe esp8089.ko config=crystal_26M_en=1
+# or
+$ modprobe esp8089.ko config=crystal_26M_en=2
+```
+

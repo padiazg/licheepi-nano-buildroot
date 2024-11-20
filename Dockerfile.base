@@ -1,16 +1,19 @@
-FROM ubuntu:18.04 AS base
-
 # Buildroot release version
 ARG BUILDROOT_RELEASE=2023.02
+ARG BUILDROOT_BASE=/root
+ARG BR2_CONFIGFILE=licheepi_nano_spiflash_defconfig
 
+FROM ubuntu:22.04 AS base
+ARG BUILDROOT_BASE
+ARG BUILDROOT_RELEASE
 ENV DEBIAN_FRONTEND=noninteractive
 
-# cache apt-get update results
-RUN apt-get update
+# cache apt update results
+RUN apt update
 
 # install build prerequisites
 # @todo remove python3-distutils after upgrading U-Boot
-RUN apt-get install -qy \
+RUN apt install -qy \
     bc \
     bison \
     build-essential \
@@ -43,45 +46,51 @@ RUN apt-get install -qy \
 RUN update-locale LC_ALL=C
 
 # get Buildroot image
-WORKDIR /root/buildroot
+WORKDIR $BUILDROOT_BASE/buildroot
 RUN wget -qO- http://buildroot.org/downloads/buildroot-${BUILDROOT_RELEASE}.tar.gz | tar --strip-components=1 -xz
 
 # build the cross-compilation toolchain as a separate cacheable image
 FROM base AS sdk
+ARG BUILDROOT_BASE
 
 # configure a skeleton setup for `make sdk` only at first
 # (we take special care to not include other unrelated config files)
-WORKDIR /root/licheepi-nano-sdk
+WORKDIR $BUILDROOT_BASE/licheepi-nano-sdk
 RUN echo 'name: LICHEEPI_NANO_SDK' >> external.desc
 RUN echo 'desc: LicheePi Nano SDK only' >> external.desc
 RUN touch external.mk Config.in
 COPY configs/licheepi_nano_sdk_defconfig configs/
 
 # compile the SDK (this takes a while!)
-WORKDIR /root/buildroot
-RUN BR2_EXTERNAL=/root/licheepi-nano-sdk make licheepi_nano_sdk_defconfig
+WORKDIR $BUILDROOT_BASE/buildroot
+RUN BR2_EXTERNAL=$BUILDROOT_BASE/licheepi-nano-sdk make licheepi_nano_sdk_defconfig
 
 RUN make sdk
 
 # start main build using the generated toolchain bundle
 FROM base AS main
+ARG BR2_CONFIGFILE
+ARG BUILDROOT_BASE
 
 # copy over the SDK tarball (keeping the name)
-COPY --from=sdk /root/buildroot/output/images/arm-buildroot-linux-gnueabi_sdk-buildroot.tar.gz /root/
+COPY --from=sdk $BUILDROOT_BASE/buildroot/output/images/arm-buildroot-linux-gnueabi_sdk-buildroot.tar.gz $BUILDROOT_BASE/
 
 # copy over the main config
-WORKDIR /root/licheepi-nano
+WORKDIR $BUILDROOT_BASE/licheepi-nano
 COPY board/ board/
 COPY configs/ configs/
+COPY package/ package/
 COPY \
     Config.in \
     external.desc \
     external.mk \
     ./
+RUN chmod +x board/licheepi_nano/post-image.sh
+RUN ln -sf $BUILDROOT_BASE/buildroot/output/host/bin/genimage /usr/bin/genimage
 
 # set up the defconfig
-WORKDIR /root/buildroot
-RUN BR2_EXTERNAL=/root/licheepi-nano make licheepi_nano_defconfig
+WORKDIR $BUILDROOT_BASE/buildroot
+RUN BR2_EXTERNAL=$BUILDROOT_BASE/licheepi-nano make $BR2_CONFIGFILE
 
 # prep the toolchain from the tarball
 RUN make toolchain
@@ -95,4 +104,6 @@ RUN make
 
 # expose built image files in standalone root folder
 FROM scratch AS dist
-COPY --from=main /root/buildroot/output/images/ .
+ARG BUILDROOT_BASE
+
+COPY --from=main $BUILDROOT_BASE/buildroot/output/images/ .
